@@ -9,11 +9,17 @@ Run with:
 from __future__ import annotations
 
 import logging
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+
+if __package__ in {None, ""}:
+    project_root = Path(__file__).resolve().parents[1]
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
 
 from app.api import router
 
@@ -46,3 +52,9 @@ def serve_dashboard() -> FileResponse:
 
 
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("app.main:app", host="127.0.0.10", port=8000, reload=False)

@@ -16,3 +16,4 @@ htmlcov/
 .idea/
 Thumbs.db
 .DS_Store
+node_modules
