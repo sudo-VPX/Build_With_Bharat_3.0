@@ -1,0 +1,402 @@
+/* ===================================================================
+   CloudGuard — Cybersecurity SaaS Dashboard Theme
+   Dark navy palette with severity-coded accent colours.
+=================================================================== */
+
+/* ── Reset & root variables ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-deep:    #0b0f1a;
+  --bg-panel:   #111827;
+  --bg-card:    #1a2236;
+  --bg-row-alt: #141d30;
+  --border:     #1f2d45;
+  --border-hi:  #2e4060;
+
+  --text-primary:   #e2e8f0;
+  --text-secondary: #8899bb;
+  --text-muted:     #4a5a7a;
+
+  --accent-blue:    #3b82f6;
+  --accent-blue-dk: #2563eb;
+
+  --sev-low:      #22c55e;
+  --sev-medium:   #f59e0b;
+  --sev-high:     #f97316;
+  --sev-critical: #ef4444;
+
+  --status-used:    #22c55e;
+  --status-unused:  #ef4444;
+  --status-wildcard:#a78bfa;
+
+  --radius: 8px;
+  --radius-sm: 5px;
+  --shadow: 0 4px 20px rgba(0,0,0,.4);
+  --font: 'Segoe UI', system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 14px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ─────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.5);
+}
+
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.header-icon  { font-size: 24px; }
+.header-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: var(--accent-blue);
+}
+.header-tagline {
+  font-size: 11px;
+  color: var(--text-muted);
+  max-width: 340px;
+  line-height: 1.3;
+}
+
+.header-controls { display: flex; align-items: center; gap: 10px; }
+
+.mode-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #1c3a5e;
+  color: var(--accent-blue);
+  letter-spacing: 1px;
+  border: 1px solid var(--accent-blue-dk);
+}
+.mode-badge.live { background: #1a3320; color: var(--sev-low); border-color: var(--sev-low); }
+
+select {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn {
+  padding: 7px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity .15s, transform .1s;
+}
+.btn:hover  { opacity: .85; }
+.btn:active { transform: scale(.97); }
+
+.btn-primary { background: var(--accent-blue); color: #fff; }
+.btn-approve { background: #166534; color: #bbf7d0; border: 1px solid #22c55e; }
+.btn-reject  { background: #7f1d1d; color: #fecaca; border: 1px solid #ef4444; }
+.btn-plan    { background: #312e81; color: #c7d2fe; border: 1px solid #818cf8; font-size: 12px; padding: 5px 12px; }
+
+/* ── Scan banner ─────────────────────────────────────────────────── */
+.scan-banner {
+  padding: 10px 28px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #1c3a5e;
+  color: #93c5fd;
+  border-bottom: 1px solid #2563eb;
+}
+.scan-banner.error { background: #3b1515; color: #fca5a5; border-color: var(--sev-critical); }
+
+/* ── Summary cards ──────────────────────────────────────────────── */
+.summary-section {
+  display: flex;
+  gap: 16px;
+  padding: 20px 28px;
+  flex-wrap: wrap;
+}
+
+.card {
+  flex: 1;
+  min-width: 130px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transition: transform .15s;
+}
+.card:hover { transform: translateY(-2px); }
+
+.card-value {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.card-label { font-size: 12px; color: var(--text-secondary); letter-spacing: .5px; }
+
+.card-neutral  .card-value { color: var(--accent-blue); }
+.card-warning  .card-value { color: var(--sev-medium); }
+.card-high     .card-value { color: var(--sev-high); }
+.card-critical .card-value { color: var(--sev-critical); }
+.card-review   .card-value { color: #a78bfa; }
+
+/* ── Main layout ────────────────────────────────────────────────── */
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 16px;
+  padding: 0 28px 28px;
+  flex: 1;
+}
+
+/* ── Panels ─────────────────────────────────────────────────────── */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.panel-header h2 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.panel-hint { font-size: 11px; color: var(--text-muted); }
+
+/* ── Tables ─────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+thead th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:nth-child(even) { background: var(--bg-row-alt); }
+tbody tr:hover { background: #1e2d45; cursor: pointer; }
+tbody tr.active-row { background: #1c3050; border-left: 3px solid var(--accent-blue); }
+
+tbody td { padding: 10px 14px; vertical-align: middle; }
+
+.loading { color: var(--text-muted); text-align: center; padding: 30px; font-style: italic; }
+
+/* ── Severity badges ────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+.badge-LOW      { background: #14532d; color: var(--sev-low); }
+.badge-MEDIUM   { background: #451a03; color: var(--sev-medium); }
+.badge-HIGH     { background: #431407; color: var(--sev-high); }
+.badge-CRITICAL { background: #450a0a; color: var(--sev-critical); }
+
+/* Permission status badges */
+.badge-used     { background: #14532d; color: var(--status-used); }
+.badge-unused   { background: #450a0a; color: var(--status-unused); }
+.badge-wildcard { background: #2e1065; color: var(--status-wildcard); }
+
+/* Review status */
+.badge-PENDING_HUMAN_REVIEW { background: #1e3a5f; color: #93c5fd; }
+.badge-APPROVED  { background: #14532d; color: var(--sev-low); }
+.badge-REJECTED  { background: #450a0a; color: var(--sev-critical); }
+
+/* ── Risk score bar ─────────────────────────────────────────────── */
+.risk-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.risk-bar-bg   { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; min-width: 60px; }
+.risk-bar-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+.risk-score-num { font-weight: 700; font-size: 13px; min-width: 26px; text-align: right; }
+
+/* ── Detail panel ───────────────────────────────────────────────── */
+.panel-detail { overflow-y: auto; max-height: calc(100vh - 260px); }
+
+.detail-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-muted);
+  gap: 10px;
+}
+.detail-icon { font-size: 36px; }
+
+.detail-header {
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.detail-name { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.detail-meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); }
+.detail-meta span { display: flex; align-items: center; gap: 4px; }
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--text-muted);
+  padding: 14px 18px 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+/* ── Finding cards ──────────────────────────────────────────────── */
+#findingsList, #recsList { padding: 0 18px 10px; display: flex; flex-direction: column; gap: 8px; }
+
+.finding-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  border-left: 3px solid var(--border-hi);
+}
+.finding-card.sev-HIGH     { border-left-color: var(--sev-high); }
+.finding-card.sev-CRITICAL { border-left-color: var(--sev-critical); }
+.finding-card.sev-MEDIUM   { border-left-color: var(--sev-medium); }
+.finding-card.sev-LOW      { border-left-color: var(--sev-low); }
+
+.finding-title { font-weight: 600; margin-bottom: 5px; font-size: 13px; }
+.finding-desc  { color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+
+/* ── Recommendation cards ───────────────────────────────────────── */
+.rec-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+.rec-title    { font-weight: 600; margin-bottom: 4px; }
+.rec-rationale { color: var(--text-secondary); font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
+.rec-actions  { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.rec-status   { font-size: 11px; margin-left: auto; }
+.no-items     { color: var(--text-muted); font-style: italic; font-size: 13px; padding: 8px 0; }
+
+/* ── Modal ──────────────────────────────────────────────────────── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 200;
+}
+.modal {
+  display: none;
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: min(640px, 92vw);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 201;
+  flex-direction: column;
+  max-height: 80vh;
+}
+.modal.open, .modal-overlay.open { display: flex; }
+.modal { overflow: hidden; }
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  font-size: 15px;
+}
+.modal-close {
+  background: none; border: none; color: var(--text-muted);
+  font-size: 18px; cursor: pointer; line-height: 1;
+}
+.modal-close:hover { color: var(--text-primary); }
+
+.modal-body {
+  padding: 18px;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.modal-body strong { color: var(--text-primary); }
+.modal-body ol { padding-left: 20px; margin-top: 8px; }
+.modal-body li { margin-bottom: 6px; }
+.modal-body .plan-section { margin-bottom: 14px; }
+.modal-body .plan-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted); margin-bottom: 4px; }
+
+.modal-footer {
+  padding: 10px 18px;
+  background: #2c1515;
+  border-top: 1px solid #7f1d1d;
+  font-size: 11px;
+  color: #fca5a5;
+}
+.modal-warning { display: flex; align-items: center; gap: 6px; }
+
+/* ── Footer ─────────────────────────────────────────────────────── */
+.footer {
+  padding: 12px 28px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  background: var(--bg-panel);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .main-layout { grid-template-columns: 1fr; }
+  .panel-detail { max-height: none; }
+  .header-tagline { display: none; }
+  .summary-section { gap: 10px; }
+  .card { min-width: 100px; padding: 14px 12px; }
+  .card-value { font-size: 28px; }
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudGuard — Permission Drift Detection</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ HEADER -->
+<header class="header">
+  <div class="header-brand">
+    <span class="header-icon">🛡️</span>
+    <span class="header-title">CloudGuard</span>
+    <span class="header-tagline">Don't Ask What Access Is Granted. Ask What Access Is Actually Used.</span>
+  </div>
+  <div class="header-controls">
+    <span class="mode-badge" id="modeBadge">DEMO</span>
+    <select id="modeSelect" title="Scan mode">
+      <option value="demo">Demo Mode</option>
+      <option value="live">Live AWS Scan</option>
+    </select>
+    <button class="btn btn-primary" id="scanBtn" onclick="runScan()">▶ Run Scan</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════ SCAN BANNER -->
+<div class="scan-banner" id="scanBanner" style="display:none"></div>
+
+<!-- ═══════════════════════════════════════════════════ SUMMARY CARDS -->
+<section class="summary-section">
+  <div class="card card-neutral" id="cardIdentities">
+    <div class="card-value" id="valIdentities">—</div>
+    <div class="card-label">Identities</div>
+  </div>
+  <div class="card card-warning" id="cardDrift">
+    <div class="card-value" id="valDrift">—</div>
+    <div class="card-label">Drift Findings</div>
+  </div>
+  <div class="card card-high" id="cardHigh">
+    <div class="card-value" id="valHigh">—</div>
+    <div class="card-label">High Risk</div>
+  </div>
+  <div class="card card-critical" id="cardCritical">
+    <div class="card-value" id="valCritical">—</div>
+    <div class="card-label">Critical</div>
+  </div>
+  <div class="card card-review" id="cardReview">
+    <div class="card-value" id="valReview">—</div>
+    <div class="card-label">Pending Review</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ MAIN LAYOUT -->
+<main class="main-layout">
+
+  <!-- ──────────────────────────────────── IDENTITIES TABLE (left) -->
+  <section class="panel panel-identities">
+    <div class="panel-header">
+      <h2>Identities</h2>
+      <span class="panel-hint">Click a row to inspect</span>
+    </div>
+    <div class="table-wrap">
+      <table id="identitiesTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Risk Score</th>
+            <th>Severity</th>
+            <th>Findings</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="identitiesBody">
+          <tr><td colspan="6" class="loading">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────── DETAIL PANEL (right) -->
+  <section class="panel panel-detail" id="detailPanel">
+    <div class="detail-placeholder" id="detailPlaceholder">
+      <span class="detail-icon">🔍</span>
+      <p>Select an identity to view drift analysis</p>
+    </div>
+    <div id="detailContent" style="display:none">
+
+      <!-- Identity header -->
+      <div class="detail-header" id="detailHeader"></div>
+
+      <!-- Permission table -->
+      <h3 class="section-title">Permissions</h3>
+      <div class="table-wrap">
+        <table id="permTable">
+          <thead>
+            <tr>
+              <th>Permission</th>
+              <th>Resource</th>
+              <th>Source</th>
+              <th>CloudTrail Status</th>
+            </tr>
+          </thead>
+          <tbody id="permBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Findings -->
+      <h3 class="section-title" id="findingsTitle">Findings</h3>
+      <div id="findingsList"></div>
+
+      <!-- Recommendations -->
+      <h3 class="section-title" id="recsTitle">Recommendations</h3>
+      <div id="recsList"></div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════════════════ REMEDIATION PLAN MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
+<div class="modal" id="remPlanModal">
+  <div class="modal-header">
+    <span>🔧 Dry-Run Remediation Plan</span>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body" id="modalBody"></div>
+  <div class="modal-footer">
+    <span class="modal-warning">⚠️ CloudGuard does NOT execute this plan. A qualified administrator must validate and manually apply any policy change.</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ FOOTER -->
+<footer class="footer">
+  <span>CloudGuard MVP — Internal Risk Model — Not an official AWS security standard</span>
+  <span id="footerMode"></span>
+</footer>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
