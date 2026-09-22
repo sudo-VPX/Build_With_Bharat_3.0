@@ -1,19 +1,40 @@
+# CloudGuard .gitignore
+
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
 .pytest_cache/
-.coverage
-htmlcov/
 
-# Local configuration and credentials
+# Frontend build output
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Leftover scaffolding dirs (safe to delete)
+node_modules/
+MainFrontEnd/
+FrontEnd_Extra/
+project/
+Suraksha_frontend/
+app/
+
+# Environment / secrets
 .env
 .env.*
 !.env.example
-.aws/
 
-# Editors and operating-system files
+# IDE
 .vscode/
 .idea/
-Thumbs.db
+*.swp
+
+# OS
 .DS_Store
-node_modules
+Thumbs.db

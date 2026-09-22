@@ -40,13 +40,6 @@ class Severity(str, Enum):
 
 
 def normalize_action(action: str) -> str:
-    """Return the canonical form of an IAM-style action.
-
-    AWS action names are case insensitive.  Keeping a single canonical form
-    makes comparisons between policy data and activity data predictable.  The
-    function accepts wildcard actions such as ``iam:*`` and ``*``.
-    """
-
     if not isinstance(action, str):
         raise TypeError("An IAM action must be a string.")
     normalized = action.strip().lower()
@@ -56,14 +49,10 @@ def normalize_action(action: str) -> str:
 
 
 def _unique_actions(actions: Iterable[str]) -> tuple[str, ...]:
-    """Normalize actions and preserve their first-seen order."""
-
     return tuple(dict.fromkeys(normalize_action(action) for action in actions))
 
 
 def _coerce_date(value: date | datetime | str | None) -> date | None:
-    """Coerce common serializable date values to a date, if supplied."""
-
     if value is None:
         return None
     if isinstance(value, datetime):
@@ -72,8 +61,6 @@ def _coerce_date(value: date | datetime | str | None) -> date | None:
         return value
     if isinstance(value, str):
         try:
-            # The date portion of an ISO timestamp is sufficient for the
-            # day-based activity checks performed by the engine.
             return date.fromisoformat(value.strip()[:10])
         except ValueError as exc:
             raise ValueError("last_activity must be an ISO-8601 date.") from exc
@@ -82,8 +69,6 @@ def _coerce_date(value: date | datetime | str | None) -> date | None:
 
 @dataclass(frozen=True, slots=True)
 class PermissionsBoundary:
-    """Metadata about an optional permissions boundary attached to an identity."""
-
     name: str
     policy_arn: str | None = None
     restrictive: bool = True
@@ -96,21 +81,11 @@ class PermissionsBoundary:
             object.__setattr__(self, "policy_arn", self.policy_arn.strip())
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "name": self.name,
-            "policy_arn": self.policy_arn,
-            "restrictive": self.restrictive,
-        }
+        return {"name": self.name, "policy_arn": self.policy_arn, "restrictive": self.restrictive}
 
 
 @dataclass(frozen=True, slots=True)
 class PermissionGrant:
-    """One declared IAM-style grant.
-
-    ``resource`` and ``condition`` are retained as metadata for a reviewer;
-    the offline engine does not claim to fully evaluate AWS policy semantics.
-    """
-
     action: str
     effect: str = "Allow"
     resource: str = "*"
@@ -119,16 +94,13 @@ class PermissionGrant:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "action", normalize_action(self.action))
-
         effect = self.effect.strip().lower()
         if effect not in {"allow", "deny"}:
             raise ValueError("Grant effect must be Allow or Deny.")
         object.__setattr__(self, "effect", effect)
-
         if not self.resource or not self.resource.strip():
             raise ValueError("Grant resource cannot be blank.")
         object.__setattr__(self, "resource", self.resource.strip())
-
         if not self.source or not self.source.strip():
             raise ValueError("Grant source cannot be blank.")
         object.__setattr__(self, "source", self.source.strip())
@@ -136,8 +108,6 @@ class PermissionGrant:
 
     @classmethod
     def from_value(cls, value: "PermissionGrant | str | Mapping[str, Any]") -> "PermissionGrant":
-        """Build a grant from the convenient forms accepted by ``Identity``."""
-
         if isinstance(value, cls):
             return value
         if isinstance(value, str):
@@ -153,19 +123,11 @@ class PermissionGrant:
         raise TypeError("A grant must be a PermissionGrant, string, or mapping.")
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "action": self.action,
-            "effect": self.effect,
-            "resource": self.resource,
-            "source": self.source,
-            "condition": dict(self.condition),
-        }
+        return {"action": self.action, "effect": self.effect, "resource": self.resource, "source": self.source, "condition": dict(self.condition)}
 
 
 @dataclass(frozen=True, slots=True)
 class Identity:
-    """A normalized user, role, or service identity and its observed activity."""
-
     id: str
     name: str
     identity_type: IdentityType | str
@@ -184,76 +146,50 @@ class Identity:
             raise ValueError("An identity needs a name.")
         object.__setattr__(self, "id", self.id.strip())
         object.__setattr__(self, "name", self.name.strip())
-
         try:
             identity_type = IdentityType(self.identity_type)
         except ValueError as exc:
             valid = ", ".join(member.value for member in IdentityType)
             raise ValueError(f"identity_type must be one of: {valid}.") from exc
         object.__setattr__(self, "identity_type", identity_type)
-
-        object.__setattr__(
-            self,
-            "grants",
-            tuple(PermissionGrant.from_value(grant) for grant in self.grants),
-        )
+        object.__setattr__(self, "grants", tuple(PermissionGrant.from_value(grant) for grant in self.grants))
         object.__setattr__(self, "used_actions", _unique_actions(self.used_actions))
         object.__setattr__(self, "last_activity", _coerce_date(self.last_activity))
-
         if self.mfa_enabled is not None and not isinstance(self.mfa_enabled, bool):
             raise TypeError("mfa_enabled must be True, False, or None.")
-
         boundary = self.permissions_boundary
         if isinstance(boundary, Mapping):
-            boundary = PermissionsBoundary(
-                name=str(boundary["name"]),
-                policy_arn=boundary.get("policy_arn"),
-                restrictive=bool(boundary.get("restrictive", True)),
-            )
+            boundary = PermissionsBoundary(name=str(boundary["name"]), policy_arn=boundary.get("policy_arn"), restrictive=bool(boundary.get("restrictive", True)))
         if boundary is not None and not isinstance(boundary, PermissionsBoundary):
             raise TypeError("permissions_boundary must be a PermissionsBoundary, mapping, or None.")
         object.__setattr__(self, "permissions_boundary", boundary)
-
         if self.account_id is not None:
             object.__setattr__(self, "account_id", self.account_id.strip())
         object.__setattr__(self, "tags", {str(key): str(value) for key, value in self.tags.items()})
 
     @property
     def identity_id(self) -> str:
-        """Alias for integrations that use the more explicit field name."""
-
         return self.id
 
     @property
     def granted_actions(self) -> tuple[str, ...]:
-        """Unique allowed actions, in policy order, for concise API payloads."""
-
-        return tuple(
-            dict.fromkeys(grant.action for grant in self.grants if grant.effect == "allow")
-        )
+        return tuple(dict.fromkeys(grant.action for grant in self.grants if grant.effect == "allow"))
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "id": self.id,
-            "name": self.name,
-            "identity_type": self.identity_type.value,
+            "id": self.id, "name": self.name, "identity_type": self.identity_type.value,
             "grants": [grant.to_dict() for grant in self.grants],
             "granted_actions": list(self.granted_actions),
             "used_actions": list(self.used_actions),
             "last_activity": self.last_activity.isoformat() if self.last_activity else None,
             "mfa_enabled": self.mfa_enabled,
-            "permissions_boundary": (
-                self.permissions_boundary.to_dict() if self.permissions_boundary else None
-            ),
-            "account_id": self.account_id,
-            "tags": dict(self.tags),
+            "permissions_boundary": (self.permissions_boundary.to_dict() if self.permissions_boundary else None),
+            "account_id": self.account_id, "tags": dict(self.tags),
         }
 
 
 @dataclass(frozen=True, slots=True)
 class Finding:
-    """A single explainable risk signal generated by the offline engine."""
-
     id: str
     identity_id: str
     category: str
@@ -264,22 +200,11 @@ class Finding:
     actions: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "id": self.id,
-            "identity_id": self.identity_id,
-            "category": self.category,
-            "severity": self.severity.value,
-            "score_impact": self.score_impact,
-            "title": self.title,
-            "description": self.description,
-            "actions": list(self.actions),
-        }
+        return {"id": self.id, "identity_id": self.identity_id, "category": self.category, "severity": self.severity.value, "score_impact": self.score_impact, "title": self.title, "description": self.description, "actions": list(self.actions)}
 
 
 @dataclass(frozen=True, slots=True)
 class Recommendation:
-    """A proposed, never-automated policy-review action."""
-
     id: str
     identity_id: str
     finding_id: str
@@ -291,23 +216,11 @@ class Recommendation:
     status: str = "PENDING_HUMAN_REVIEW"
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "id": self.id,
-            "identity_id": self.identity_id,
-            "finding_id": self.finding_id,
-            "title": self.title,
-            "rationale": self.rationale,
-            "proposed_change": self.proposed_change,
-            "review_only": self.review_only,
-            "human_approval_required": self.human_approval_required,
-            "status": self.status,
-        }
+        return {"id": self.id, "identity_id": self.identity_id, "finding_id": self.finding_id, "title": self.title, "rationale": self.rationale, "proposed_change": self.proposed_change, "review_only": self.review_only, "human_approval_required": self.human_approval_required, "status": self.status}
 
 
 @dataclass(frozen=True, slots=True)
 class AnalysisReport:
-    """Serializable analysis output for one identity."""
-
     identity: Identity
     risk_score: int
     severity: Severity
@@ -317,32 +230,11 @@ class AnalysisReport:
 
     @property
     def score(self) -> int:
-        """A concise alias used by dashboard clients."""
-
         return self.risk_score
 
     @property
     def summary(self) -> dict[str, Any]:
-        """A compact dashboard-ready representation of the analysis."""
-
-        return {
-            "identity_id": self.identity.id,
-            "identity_name": self.identity.name,
-            "identity_type": self.identity.identity_type.value,
-            "risk_score": self.risk_score,
-            "severity": self.severity.value,
-            "finding_count": len(self.findings),
-            "recommendation_count": len(self.recommendations),
-            "requires_human_review": bool(self.recommendations),
-        }
+        return {"identity_id": self.identity.id, "identity_name": self.identity.name, "identity_type": self.identity.identity_type.value, "risk_score": self.risk_score, "severity": self.severity.value, "finding_count": len(self.findings), "recommendation_count": len(self.recommendations), "requires_human_review": bool(self.recommendations)}
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "identity": self.identity.to_dict(),
-            "risk_score": self.risk_score,
-            "severity": self.severity.value,
-            "findings": [finding.to_dict() for finding in self.findings],
-            "recommendations": [recommendation.to_dict() for recommendation in self.recommendations],
-            "as_of": self.as_of.isoformat() if self.as_of else None,
-            "summary": self.summary,
-        }
+        return {"identity": self.identity.to_dict(), "risk_score": self.risk_score, "severity": self.severity.value, "findings": [f.to_dict() for f in self.findings], "recommendations": [r.to_dict() for r in self.recommendations], "as_of": self.as_of.isoformat() if self.as_of else None, "summary": self.summary}

@@ -1,1 +1,0 @@
-"""CloudGuard domain services."""

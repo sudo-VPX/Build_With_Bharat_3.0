@@ -4,21 +4,11 @@ from __future__ import annotations
 
 from datetime import date
 
-from app.models import Identity, IdentityType, PermissionGrant, PermissionsBoundary
+from backend.models import Identity, IdentityType, PermissionGrant, PermissionsBoundary
 
 
 def load_demo_identities() -> tuple[Identity, ...]:
-    """Return a realistic, deterministic set of identities for offline demos.
-
-    The sample intentionally includes three useful review states:
-
-    * a developer with an unused high-impact termination permission;
-    * an automation role with an account-wide wildcard grant;
-    * a healthy, bounded read-only analyst identity.
-
-    These are illustrative, synthetic records only.  They do not connect to
-    AWS or modify a customer account.
-    """
+    """Return a realistic, deterministic set of identities for offline demos."""
 
     guardrail = PermissionsBoundary(
         name="CloudGuardDeveloperBoundary",
@@ -32,9 +22,7 @@ def load_demo_identities() -> tuple[Identity, ...]:
     )
 
     return (
-        # ---------------------------------------------------------------
         # Bob — canonical hackathon demo: 2 unused permissions → HIGH risk
-        # ---------------------------------------------------------------
         Identity(
             id="usr-bob",
             name="Bob",
@@ -45,7 +33,6 @@ def load_demo_identities() -> tuple[Identity, ...]:
                 PermissionGrant("ec2:StopInstances", resource="arn:aws:ec2:ap-south-1:123456789012:instance/*"),
                 PermissionGrant("iam:CreateUser"),
             ),
-            # CloudTrail shows: S3 and EC2:Start used. EC2:Stop and IAM:CreateUser — never called.
             used_actions=("s3:GetObject", "ec2:StartInstances"),
             last_activity=date(2026, 9, 15),
             mfa_enabled=False,

@@ -23,7 +23,7 @@ class Settings:
     """Runtime options that are safe to expose in local configuration."""
 
     aws_profile: str = "CloudGuard"
-    aws_region: str = "eu-north-1"
+    aws_region: str = "ap-south-1"
     lookback_days: int = 90
     default_mode: str = "demo"
 
@@ -33,8 +33,8 @@ class Settings:
         return cls(
             aws_profile=os.getenv("CLOUDGUARD_AWS_PROFILE", "CloudGuard").strip()
             or "CloudGuard",
-            aws_region=os.getenv("CLOUDGUARD_AWS_REGION", "eu-north-1").strip()
-            or "eu-north-1",
+            aws_region=os.getenv("CLOUDGUARD_AWS_REGION", "ap-south-1").strip()
+            or "ap-south-1",
             lookback_days=_positive_int(os.getenv("CLOUDGUARD_LOOKBACK_DAYS"), 90),
             default_mode=mode if mode in {"demo", "live"} else "demo",
         )
